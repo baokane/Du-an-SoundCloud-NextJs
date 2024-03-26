@@ -6,6 +6,7 @@ import { Settings } from 'react-slick'
 import { Box, Button, Divider } from "@mui/material";
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import Link from "next/link";
 
 interface IProps {
     data: ITrackTop[];
@@ -15,8 +16,6 @@ interface IProps {
 const MainSlider = (props: IProps) => {
 
     const { data, title } = props
-
-    console.log('>>> checkData:', props.data)
 
     const PrevArrow = (props: any) => {
         return (
@@ -51,8 +50,8 @@ const MainSlider = (props: IProps) => {
                     position: 'absolute',
                     transform: 'translateY(-50%)',
                     top: '25%',
-                    right: '-50px',
                     zIndex: 1,
+                    right: '-50px',
                     minWidth: 30,
                     width: 35,
                 }}
@@ -76,10 +75,10 @@ const MainSlider = (props: IProps) => {
             sx={{
                 margin: '0 50px',
                 '.track': {
-                    padding: '0 10px',
+                    padding: '0 20px',
                     'img': {
-                        height: 150,
-                        width: 150
+                        height: '100%',
+                        width: '100%'
                     }
                 },
                 'h3': {
@@ -97,14 +96,15 @@ const MainSlider = (props: IProps) => {
                     return (
                         <div className="track" key={track._id}>
                             <img src={`${process.env.NEXT_PUBLIC_BACKEND_URL}/images/${track.imgUrl}`} />
-                            <h4>{track.title}</h4>
+                            <Link
+                                href={`/track/${track._id}?audio=${track.trackUrl}`}
+                            >
+                                {track.title}
+                            </Link>
                             <h5>{track.description}</h5>
                         </div>
                     )
                 })}
-                {/* <div className="abc">
-                    <h3>1</h3>
-                </div> */}
             </Slider>
             <Divider sx={{ marginTop: '50px' }} />
 

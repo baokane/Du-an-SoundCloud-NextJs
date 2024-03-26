@@ -44,21 +44,19 @@ export default async function HomePage() {
     url: 'http://localhost:8000/api/v1/tracks/top',
     method: 'POST',
     body: { category: 'WORKOUT', limit: 10 },
-
   })
 
   const party = await sendRequest<IBackendRes<ITrackTop[]>>({
     url: 'http://localhost:8000/api/v1/tracks/top',
     method: 'POST',
     body: { category: 'PARTY', limit: 10 },
-
   })
-  // console.log('>>>> res (TS): ', res.data[0].)
+  console.log('>>>> res (TS): ', chills)
 
   return (
     <Container>
       <MainSlider
-        title={'Top Chills'}
+        title={'Top Chill'}
         data={chills?.data ? chills.data : []}
       // hoặc : data={chills?.data ?? []}
       />
