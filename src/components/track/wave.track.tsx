@@ -1,42 +1,83 @@
 'use client'
 
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import WaveSurfer from "wavesurfer.js";
+import { WaveSurferOptions } from "wavesurfer.js";
 import { useSearchParams } from 'next/navigation';
+import { useWavesurfer } from "@/utils/customHook";
+import './wave.scss'
 
+// Cắt sang file customHook.ts
 // WaveSurfer hook
-const useWavesurfer = (containerRef: any, options: any) => {
-    const [wavesurfer, setWavesurfer] = useState<any>(null)
+// const useWavesurfer = (
+//     containerRef: React.RefObject<HTMLInputElement>,
+//     options: Omit<WaveSurferOptions, 'container'>
+// ) => {
+//     const [wavesurfer, setWavesurfer] = useState<any>(null)
 
-    // Initialize wavesurfer when the container mounts
-    // or any of the props change
-    useEffect(() => {
-        if (!containerRef.current) return
+//     // Initialize wavesurfer when the container mounts
+//     // or any of the props change
+//     useEffect(() => {
+//         if (!containerRef.current) return
 
-        const ws = WaveSurfer.create({
-            ...options,
-            container: containerRef.current,
-        })
+//         const ws = WaveSurfer.create({
+//             ...options,
+//             container: containerRef.current,
+//         })
 
-        setWavesurfer(ws)
+//         setWavesurfer(ws)
 
-        return () => {
-            ws.destroy()
-        }
-    }, [options, containerRef])
+//         return () => {
+//             ws.destroy()
+//         }
+//     }, [options, containerRef])
 
-    return wavesurfer
-}
+//     return wavesurfer
+// }
+
+// Dùng useRef()
 const WaveTrack = () => {
     const searchParams = useSearchParams()
     const fileName = searchParams.get('audio');
-    const containerRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLInputElement>(null);
 
-    const optionsMemo = useMemo(() => {
+    const timeRef = useRef<HTMLInputElement>(null)
+    const durationRef = useRef<HTMLInputElement>(null);
+
+    console.log('timeRef:', timeRef.current)
+
+    const optionsMemo = useMemo((): Omit<WaveSurferOptions, 'container'> => {
+
+        let gradient, progressGradient;
+        if (typeof window !== 'undefined') {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d')!;
+
+            gradient = ctx.createLinearGradient(0, 0, 0, canvas.height * 1.35)
+            gradient.addColorStop(0, '#656666') // Top color
+            gradient.addColorStop((canvas.height * 0.7) / canvas.height, '#656666') // Top color
+            gradient.addColorStop((canvas.height * 0.7 + 1) / canvas.height, '#ffffff') // White line
+            gradient.addColorStop((canvas.height * 0.7 + 2) / canvas.height, '#ffffff') // White line
+            gradient.addColorStop((canvas.height * 0.7 + 3) / canvas.height, '#B1B1B1') // Bottom color
+            gradient.addColorStop(1, '#B1B1B1') // Bottom color
+
+            // Define the progress gradient
+            progressGradient = ctx.createLinearGradient(0, 0, 0, canvas.height * 1.35)
+            progressGradient.addColorStop(0, '#EE772F') // Top color
+            progressGradient.addColorStop((canvas.height * 0.7) / canvas.height, '#EB4926') // Top color
+            progressGradient.addColorStop((canvas.height * 0.7 + 1) / canvas.height, '#ffffff') // White line
+            progressGradient.addColorStop((canvas.height * 0.7 + 2) / canvas.height, '#ffffff') // White line
+            progressGradient.addColorStop((canvas.height * 0.7 + 3) / canvas.height, '#F6B094') // Bottom color
+            progressGradient.addColorStop(1, '#F6B094') // Bottom color
+        }
+
         return {
-            waveColor: 'rgb(200, 0, 200)',
-            progressColor: 'rgb(100, 0, 100)',
+            // waveColor: 'rgb(200, 0, 200)',
+            // progressColor: 'rgb(100, 0, 100)',
+            waveColor: gradient,
+            progressColor: progressGradient,
             url: `/api?audio=${fileName}`,
+            barWidth: 2,
         }
     }, []);
 
@@ -47,7 +88,43 @@ const WaveTrack = () => {
     // }
 
     const wavesurfer = useWavesurfer(containerRef, optionsMemo);
+    const [isPlaying, setIsPlaying] = useState<boolean>(false)
 
+    useEffect(() => {
+        if (!wavesurfer) return
+        setIsPlaying(false)
+
+        // Time
+        const timeEl = timeRef.current!
+        const durationEl = durationRef.current!
+
+        // Hover
+        const hover = document.querySelector('#hover')!
+
+        const waveform = containerRef.current
+        // hoặc dùng:  const waveform = document.querySelector('.wave-form-container')!
+
+        //@ts-ignore
+        waveform.addEventListener('pointermove', (e) => (hover.style.width = `${e.offsetX}px`))
+
+        const subscriptions = [
+            wavesurfer.on('play', () => setIsPlaying(true)),
+            wavesurfer.on('pause', () => setIsPlaying(false)),
+
+            wavesurfer.on('decode', (duration) => (durationEl.textContent = formatTime(duration))),
+            wavesurfer.on('timeupdate', (currentTime) => (timeEl.textContent = formatTime(currentTime)))
+        ]
+        return () => {
+            subscriptions.forEach((unsub) => (unsub()))
+        }
+    }, [wavesurfer])
+
+    const onPlayClick = useCallback(() => {
+        if (wavesurfer) {
+            wavesurfer.isPlaying() ? wavesurfer.pause() : wavesurfer.play();
+            // setIsPlaying(wavesurfer.isPlaying())
+        }
+    }, [wavesurfer])
 
     // useEffect(() => {
     //     if (containerRef.current) {
@@ -64,9 +141,23 @@ const WaveTrack = () => {
     //     }
     // }, [])
 
+    const formatTime = (seconds: number) => {
+        const minutes = Math.floor(seconds / 60)
+        const secondsRemainder = Math.round(seconds) % 60
+        const paddedSeconds = `0${secondsRemainder}`.slice(-2)
+        return `${minutes}:${paddedSeconds}`
+    }
+
     return (
-        <div ref={containerRef}>
-            wave track
+        <div>
+            <div ref={containerRef} className="wave-form-container">
+                <div ref={timeRef} className="time">0:00</div>
+                <div ref={durationRef} className="duration">0:00</div>
+                <div id="hover"></div>
+            </div>
+            <button onClick={() => onPlayClick()}>
+                {isPlaying === true ? 'pause' : 'plays'}
+            </button>
         </div>
     )
 }
