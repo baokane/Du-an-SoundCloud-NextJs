@@ -35,16 +35,21 @@ import './wave.scss'
 //     return wavesurfer
 // }
 
-// Dùng useRef()
+// Dùng state react
 const WaveTrack = () => {
     const searchParams = useSearchParams()
     const fileName = searchParams.get('audio');
     const containerRef = useRef<HTMLInputElement>(null);
 
-    const timeRef = useRef<HTMLInputElement>(null)
-    const durationRef = useRef<HTMLInputElement>(null);
+    const hoverRef = useRef<HTMLInputElement>(null);
 
-    console.log('timeRef:', timeRef.current)
+    // Dùng ref
+    // const timeRef = useRef<string>('0:00')
+    // const durationRef = useRef<string>('0:00');
+
+    // Dùng state react
+    const [time, setTime] = useState<string>('0:00')
+    const [duration, setDuration] = useState<string>('0:00')
 
     const optionsMemo = useMemo((): Omit<WaveSurferOptions, 'container'> => {
 
@@ -94,25 +99,26 @@ const WaveTrack = () => {
         if (!wavesurfer) return
         setIsPlaying(false)
 
-        // Time
-        const timeEl = timeRef.current!
-        const durationEl = durationRef.current!
-
         // Hover
-        const hover = document.querySelector('#hover')!
+        const hover = hoverRef.current!
 
-        const waveform = containerRef.current
+        const waveform = containerRef.current!
         // hoặc dùng:  const waveform = document.querySelector('.wave-form-container')!
 
-        //@ts-ignore
         waveform.addEventListener('pointermove', (e) => (hover.style.width = `${e.offsetX}px`))
 
         const subscriptions = [
             wavesurfer.on('play', () => setIsPlaying(true)),
             wavesurfer.on('pause', () => setIsPlaying(false)),
 
-            wavesurfer.on('decode', (duration) => (durationEl.textContent = formatTime(duration))),
-            wavesurfer.on('timeupdate', (currentTime) => (timeEl.textContent = formatTime(currentTime)))
+            // wavesurfer.on('decode', (duration) => (durationEl.textContent = formatTime(duration))), // dùng ref -> ok
+            wavesurfer.on('decode', (duration) => {
+                setDuration(formatTime(duration))  //Dùng state -> ok
+            }),
+            // wavesurfer.on('timeupdate', (currentTime) => (timeEl.textContent = formatTime(currentTime))) // dùng ref-> ok
+            wavesurfer.on('timeupdate', (currentTime) => {
+                setTime(formatTime(currentTime)) //Dùng state -> ok
+            })
         ]
         return () => {
             subscriptions.forEach((unsub) => (unsub()))
@@ -151,9 +157,22 @@ const WaveTrack = () => {
     return (
         <div>
             <div ref={containerRef} className="wave-form-container">
-                <div ref={timeRef} className="time">0:00</div>
-                <div ref={durationRef} className="duration">0:00</div>
-                <div id="hover"></div>
+                <div
+                    // ref={timeRef}
+                    className="time"
+                >
+                    {/* dùng state */}
+
+                    {time}
+                </div>
+                <div
+                    // ref={durationRef}
+                    className="duration"
+                >
+                    {/* dùng state */}
+                    {duration}
+                </div>
+                <div ref={hoverRef} className="hover-wave"></div>
             </div>
             <button onClick={() => onPlayClick()}>
                 {isPlaying === true ? 'pause' : 'plays'}
