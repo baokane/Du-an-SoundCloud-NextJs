@@ -20,6 +20,7 @@ import Container from '@mui/material/Container';
 import Avatar from '@mui/material/Avatar';
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { signOut, useSession, signIn } from "next-auth/react"
 
 const Search = styled('div')(({ theme }) => ({
     position: 'relative',
@@ -62,6 +63,17 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 }));
 
 export default function AppHeader() {
+
+    // sau khi có data từ hook thì gán sang biến session
+    // Cách 1:
+    const { data: session } = useSession()
+
+    // Cách 2: gán data vào eric
+    // const { data } = useSession()
+    // const eric = data
+
+    // console.log('>>> secsion:', session)
+    // console.log('>>> hook:', useSession())
     const router = useRouter()
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const [mobileMoreAnchorEl, setMobileMoreAnchorEl] =
@@ -109,7 +121,11 @@ export default function AppHeader() {
             <MenuItem onClick={handleMenuClose}>
                 <Link href='/profile' style={{ color: 'unset', textDecoration: 'none' }}>Profile</Link>
             </MenuItem>
-            <MenuItem onClick={handleMenuClose}>Logout</MenuItem>
+            <MenuItem onClick={() => {
+                handleMenuClose()
+                signOut()
+            }}
+            >Logout</MenuItem>
         </Menu>
     );
 
@@ -208,12 +224,16 @@ export default function AppHeader() {
                                 textDecoration: 'unset'
                             }
                         }}>
+                            {session ?
+                                <>
+                                    <Link href='/playlist'>Playlists</Link>
+                                    <Link href='/like'>Likes</Link>
+                                    <span>Upload</span>
 
-                            <Link href='/playlist'>Playlists</Link>
-                            <Link href='/like'>Likes</Link>
-                            <span>Upload</span>
-
-                            <Avatar onClick={handleProfileMenuOpen}>B</Avatar>
+                                    <Avatar onClick={handleProfileMenuOpen}>B</Avatar></>
+                                :
+                                <Link href='#' onClick={() => signIn()}>Log in</Link>
+                            }
 
                         </Box>
                         <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
