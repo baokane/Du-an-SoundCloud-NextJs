@@ -68,6 +68,8 @@ export default function AppHeader() {
     // Cách 1:
     const { data: session } = useSession()
 
+    console.log('session:::', session)
+
     // Cách 2: gán data vào eric
     // const { data } = useSession()
     // const eric = data
