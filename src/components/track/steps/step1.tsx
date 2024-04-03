@@ -39,7 +39,16 @@ function InputFileUpload() {
     );
 }
 
-const Step1 = () => {
+interface IProps {
+    setValue: (v: number) => void;
+    setTrackUpload: any;
+    trackUpload: any;
+
+}
+
+const Step1 = (props: IProps) => {
+    const { trackUpload } = props
+
     const [openMessage, setOpenMessage] = useState<boolean>(false)
     const [resMessage, setResMessage] = useState<string>('')
 
@@ -48,6 +57,7 @@ const Step1 = () => {
     const onDrop = useCallback(async (acceptedFiles: FileWithPath[]) => {
         // Do something with the files
         if (acceptedFiles && acceptedFiles[0]) {
+
             const audio = acceptedFiles[0]
 
             const formData = new FormData();
@@ -70,18 +80,38 @@ const Step1 = () => {
                     {
                         headers: {
                             'Authorization': `Bearer ${session?.access_token}`,
-                            'target_type': 'tracks'
+                            'target_type': 'tracks',
+                            delay: 3000
                         },
-                    }
+                        onUploadProgress: progressEvent => {
+                            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total!);
+                            props.setTrackUpload({
+                                ...trackUpload,
+                                fileName: acceptedFiles[0].name,
+                                percent: percentCompleted
+                            })
+                            console.log('percentCompleted:', percentCompleted)
+                        }
+                    },
+
+
                 )
                 console.log('res:', res?.data?.data?.fileName)
+                console.log('res:', res)
                 if (res && res.data) {
+                    props.setTrackUpload({
+                        ...trackUpload,
+                        uploadedTrackName: res?.data?.data?.fileName
+                    })
                     setOpenMessage(true)
                     //@ts-ignore
                     setResMessage("Upload file thành công!")
                     setTimeout(() => {
                         setOpenMessage(false)
                     }, 3000)
+                    setTimeout(() => {
+                        props.setValue(1)
+                    }, 1500)
                 }
             } catch (error) {
                 //@ts-ignore

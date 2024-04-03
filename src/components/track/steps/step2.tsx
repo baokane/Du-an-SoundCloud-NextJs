@@ -6,8 +6,11 @@ import Box from '@mui/material/Box';
 import { styled } from '@mui/material/styles';
 import Button from '@mui/material/Button';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import { Grid, TextField } from '@mui/material';
-// import TextField from '@mui/material/TextField';
+import { Grid } from '@mui/material';
+import MenuItem from '@mui/material/MenuItem';
+import TextField from '@mui/material/TextField';
+import { useSession } from 'next-auth/react';
+import axios from 'axios';
 
 // Progress bar
 function LinearProgressWithLabel(props: LinearProgressProps & { value: number }) {
@@ -25,21 +28,12 @@ function LinearProgressWithLabel(props: LinearProgressProps & { value: number })
     );
 }
 
-function ProgressBar() {
-    const [progress, setProgress] = React.useState(10);
-
-    React.useEffect(() => {
-        const timer = setInterval(() => {
-            setProgress((prevProgress) => (prevProgress >= 100 ? 10 : prevProgress + 10));
-        }, 800);
-        return () => {
-            clearInterval(timer);
-        };
-    }, []);
+function ProgressBar(props: IProps) {
+    const { trackUpload } = props
 
     return (
         <Box sx={{ width: '100%' }}>
-            <LinearProgressWithLabel value={progress} />
+            <LinearProgressWithLabel value={trackUpload.percent} />
         </Box>
     );
 }
@@ -57,9 +51,77 @@ const VisuallyHiddenInput = styled('input')({
     width: 1,
 });
 
-function InputFileUpload() {
+function InputFileUpload(props: any) {
+    const { setInfo, info } = props
+    const { data: session } = useSession()
+    const handleUpload = async (image: any) => {
+
+        const formData = new FormData();
+        formData.append('fileUpload', image);
+
+        try {
+            const res = await axios.post(
+                'http://localhost:8000/api/v1/files/upload',
+                formData,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${session?.access_token}`,
+                        'target_type': 'images',
+                        delay: 3000
+                    },
+                    // onUploadProgress: progressEvent => {
+                    //     const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total!);
+                    //     props.setTrackUpload({
+                    //         ...trackUpload,
+                    //         fileName: acceptedFiles[0].name,
+                    //         percent: percentCompleted
+                    //     })
+                    //     console.log('percentCompleted:', percentCompleted)
+                    // }
+                },
+
+
+            )
+            console.log('res:', res?.data?.data?.fileName)
+            console.log('res:', res)
+            setInfo({
+                ...info,
+                imgUrl: res?.data?.data?.fileName
+            })
+            // if (res && res.data) {
+            //     props.setTrackUpload({
+            //         ...trackUpload,
+            //         uploadedTrackName: res?.data?.data?.fileName
+            //     })
+            //     setOpenMessage(true)
+            //     //@ts-ignore
+            //     setResMessage("Upload file thành công!")
+            //     setTimeout(() => {
+            //         setOpenMessage(false)
+            //     }, 3000)
+            //     setTimeout(() => {
+            //         props.setValue(1)
+            //     }, 1500)
+            // }
+        } catch (error) {
+            //@ts-ignore
+            console.log('err:', error?.response?.data)
+            // setOpenMessage(true)
+            // //@ts-ignore
+            // setResMessage(error?.response?.data?.message)
+            // setTimeout(() => {
+            //     setOpenMessage(false)
+            // }, 3000)
+        }
+    }
     return (
         <Button
+            onChange={(e) => {
+                const event = e.target as HTMLInputElement
+                if (event.files) {
+                    handleUpload(event.files[0])
+                }
+            }}
             component="label"
             role={undefined}
             variant="contained"
@@ -90,12 +152,55 @@ const currencies = [
         label: 'Party',
     },
 ];
-const Step2 = () => {
+
+interface IProps {
+    trackUpload: {
+        fileName: string;
+        percent: number;
+        uploadedTrackName: string;
+    };
+}
+
+interface INewTrack {
+    title: string;
+    description: string;
+    trackUrl: string;
+    category: string;
+    imgUrl: string;
+}
+
+const Step2 = (props: IProps) => {
+
+    const { trackUpload } = props
+
+    const [info, setInfo] = React.useState<INewTrack>({
+        title: '',
+        description: '',
+        trackUrl: '',
+        category: '',
+        imgUrl: '',
+    })
+
+    React.useEffect(() => {
+        if (trackUpload && trackUpload.uploadedTrackName) {
+            console.log('>>> track :', trackUpload)
+            setInfo({
+                ...info,
+                trackUrl: trackUpload.uploadedTrackName
+            })
+        }
+    }, [trackUpload])
+
+    const handleSubmitForm = () => {
+        console.log('info:', info)
+    }
     return (
         <div>
-            <div>Your uploading track:</div>
+            <div>{trackUpload.fileName}</div>
             <div style={{ marginBottom: 60 }}>
-                <ProgressBar />
+                <ProgressBar
+                    trackUpload={trackUpload}
+                />
             </div>
             <Grid
                 container
@@ -111,37 +216,65 @@ const Step2 = () => {
                     <div
                         style={{ height: 250, width: 250, background: '#ccc' }}
                     >
-
+                        {info.imgUrl &&
+                            <img
+                                height={250}
+                                width={250}
+                                src={`${process.env.NEXT_PUBLIC_BACKEND_URL}/images/${info.imgUrl}`} alt='ảnh'
+                            />
+                        }
                     </div>
-                    <InputFileUpload />
+                    <InputFileUpload
+                        setInfo={setInfo}
+                        info={info}
+                    />
 
                 </Grid>
                 <Grid item xs={6} md={8} >
-                    <TextField id="standard-basic" label="Title" variant="standard" fullWidth margin='dense' />
-                    <TextField id="standard-basic" label="Description" variant="standard" fullWidth margin='dense' />
                     <TextField
-                        margin='dense'
+                        value={info?.title}
+                        onChange={(e) => setInfo({
+                            ...info,
+                            title: e.target.value
+                        })}
+                        label="Title"
+                        variant="standard"
                         fullWidth
-                        id="standard-select-currency-native"
+                        margin='dense'
+                    />
+                    <TextField
+                        value={info?.description}
+                        onChange={(e) => setInfo({
+                            ...info,
+                            description: e.target.value
+                        })}
+                        label="Description"
+                        variant="standard"
+                        fullWidth
+                        margin='dense'
+                    />
+
+                    <TextField
+                        value={info?.category}
+                        onChange={(e) => setInfo({
+                            ...info,
+                            category: e.target.value
+                        })}
+                        sx={{ mt: 2 }}
+                        fullWidth
                         select
                         label="Category"
-                        defaultValue="chill"
-                        SelectProps={{
-                            native: true,
-                        }}
-                        // helperText="Please select your currency"
+                        defaultValue="EUR"
                         variant="standard"
-                        sx={{
-                            marginTop: '30px'
-                        }}
                     >
                         {currencies.map((option) => (
-                            <option key={option.value} value={option.value}>
+                            <MenuItem key={option.value} value={option.value}>
                                 {option.label}
-                            </option>
+                            </MenuItem>
                         ))}
                     </TextField>
                     <Button
+                        onClick={() => handleSubmitForm()}
                         variant="outlined"
                         sx={{
                             marginTop: '37px'
