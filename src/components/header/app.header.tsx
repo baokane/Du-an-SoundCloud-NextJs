@@ -68,7 +68,7 @@ export default function AppHeader() {
     // Cách 1:
     const { data: session } = useSession()
 
-    console.log('session:::', session)
+    // console.log('session:::', session)
 
     // Cách 2: gán data vào eric
     // const { data } = useSession()
@@ -121,7 +121,7 @@ export default function AppHeader() {
             anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
         >
             <MenuItem onClick={handleMenuClose}>
-                <Link href='/profile' style={{ color: 'unset', textDecoration: 'none' }}>Profile</Link>
+                <Link href={`/profile/${session?.user?._id}`} style={{ color: 'unset', textDecoration: 'none' }}>Profile</Link>
             </MenuItem>
             <MenuItem onClick={() => {
                 handleMenuClose()

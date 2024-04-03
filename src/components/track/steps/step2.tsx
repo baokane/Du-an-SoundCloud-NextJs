@@ -9,8 +9,12 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { Grid } from '@mui/material';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 import { useSession } from 'next-auth/react';
 import axios from 'axios';
+import { sendRequest } from '@/utils/api';
+import { useToast } from '@/utils/toast';
 
 // Progress bar
 function LinearProgressWithLabel(props: LinearProgressProps & { value: number }) {
@@ -51,9 +55,14 @@ const VisuallyHiddenInput = styled('input')({
     width: 1,
 });
 
+// 
 function InputFileUpload(props: any) {
     const { setInfo, info } = props
     const { data: session } = useSession()
+
+    const [openMessage, setOpenMessage] = React.useState<boolean>(false)
+    const [resMessage, setResMessage] = React.useState<string>('')
+
     const handleUpload = async (image: any) => {
 
         const formData = new FormData();
@@ -69,18 +78,7 @@ function InputFileUpload(props: any) {
                         'target_type': 'images',
                         delay: 3000
                     },
-                    // onUploadProgress: progressEvent => {
-                    //     const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total!);
-                    //     props.setTrackUpload({
-                    //         ...trackUpload,
-                    //         fileName: acceptedFiles[0].name,
-                    //         percent: percentCompleted
-                    //     })
-                    //     console.log('percentCompleted:', percentCompleted)
-                    // }
                 },
-
-
             )
             console.log('res:', res?.data?.data?.fileName)
             console.log('res:', res)
@@ -88,53 +86,69 @@ function InputFileUpload(props: any) {
                 ...info,
                 imgUrl: res?.data?.data?.fileName
             })
-            // if (res && res.data) {
-            //     props.setTrackUpload({
-            //         ...trackUpload,
-            //         uploadedTrackName: res?.data?.data?.fileName
-            //     })
-            //     setOpenMessage(true)
-            //     //@ts-ignore
-            //     setResMessage("Upload file thành công!")
-            //     setTimeout(() => {
-            //         setOpenMessage(false)
-            //     }, 3000)
-            //     setTimeout(() => {
-            //         props.setValue(1)
-            //     }, 1500)
-            // }
+            if (res && res.data) {
+                setInfo({
+                    ...info,
+                    imgUrl: res?.data?.data?.fileName
+                })
+                setOpenMessage(true)
+                //@ts-ignore
+                setResMessage("Upload file thành công!")
+                setTimeout(() => {
+                    setOpenMessage(false)
+                }, 3000)
+            }
+
         } catch (error) {
             //@ts-ignore
             console.log('err:', error?.response?.data)
-            // setOpenMessage(true)
-            // //@ts-ignore
-            // setResMessage(error?.response?.data?.message)
-            // setTimeout(() => {
-            //     setOpenMessage(false)
-            // }, 3000)
+            setOpenMessage(true)
+            //@ts-ignore
+            setResMessage(error?.response?.data?.message)
+            setTimeout(() => {
+                setOpenMessage(false)
+            }, 3000)
         }
     }
     return (
-        <Button
-            onChange={(e) => {
-                const event = e.target as HTMLInputElement
-                if (event.files) {
-                    handleUpload(event.files[0])
-                }
-            }}
-            component="label"
-            role={undefined}
-            variant="contained"
-            tabIndex={-1}
-            startIcon={<CloudUploadIcon />}
-            sx={{
-                marginTop: '10px'
-            }}
-        >
-            Upload file
-            <VisuallyHiddenInput type="file" />
-        </Button>
-    );
+        <>
+            <Button
+                onChange={(e) => {
+                    const event = e.target as HTMLInputElement
+                    if (event.files) {
+                        handleUpload(event.files[0])
+                    }
+                }}
+                component="label"
+                role={undefined}
+                variant="contained"
+                tabIndex={-1}
+                startIcon={<CloudUploadIcon />}
+                sx={{
+                    marginTop: '10px'
+                }}
+            >
+                Upload file
+                <VisuallyHiddenInput type="file" />
+            </Button>
+
+            <Snackbar
+                open={openMessage}
+                autoHideDuration={5000}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            // onClose={handleClose}
+            >
+                <Alert
+                    onClose={() => setOpenMessage(false)}
+                    severity="error"
+                    // variant="filled"
+                    sx={{ width: '100%' }}
+                >
+                    {resMessage}
+                </Alert>
+            </Snackbar>
+        </>
+    )
 }
 
 // Text Field
@@ -159,6 +173,7 @@ interface IProps {
         percent: number;
         uploadedTrackName: string;
     };
+    setValue: (v: number) => void;
 }
 
 interface INewTrack {
@@ -170,8 +185,11 @@ interface INewTrack {
 }
 
 const Step2 = (props: IProps) => {
+    const { data: session } = useSession()
 
-    const { trackUpload } = props
+    const toast = useToast()
+
+    const { trackUpload, setValue } = props
 
     const [info, setInfo] = React.useState<INewTrack>({
         title: '',
@@ -191,8 +209,30 @@ const Step2 = (props: IProps) => {
         }
     }, [trackUpload])
 
-    const handleSubmitForm = () => {
+    const handleSubmitForm = async () => {
+
         console.log('info:', info)
+        const res = await sendRequest<IBackendRes<ITrackTop[]>>({
+            url: 'http://localhost:8000/api/v1/tracks',
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${session?.access_token}`,
+            },
+            body: {
+                title: info.title,
+                description: info.description,
+                trackUrl: info.trackUrl,
+                category: info.category,
+                imgUrl: info.imgUrl,
+            },
+        })
+        console.log('reess:', res)
+        if (res && res.data) {
+            toast.success('Tạo mới bài track thành công!')
+            setValue(0)
+        } else {
+            toast.error(res.message)
+        }
     }
     return (
         <div>
@@ -200,6 +240,7 @@ const Step2 = (props: IProps) => {
             <div style={{ marginBottom: 60 }}>
                 <ProgressBar
                     trackUpload={trackUpload}
+                    setValue={setValue}
                 />
             </div>
             <Grid

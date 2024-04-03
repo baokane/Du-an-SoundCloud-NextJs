@@ -57,6 +57,7 @@ const Step1 = (props: IProps) => {
     const onDrop = useCallback(async (acceptedFiles: FileWithPath[]) => {
         // Do something with the files
         if (acceptedFiles && acceptedFiles[0]) {
+            props.setValue(1)
 
             const audio = acceptedFiles[0]
 
@@ -93,25 +94,14 @@ const Step1 = (props: IProps) => {
                             console.log('percentCompleted:', percentCompleted)
                         }
                     },
-
-
                 )
                 console.log('res:', res?.data?.data?.fileName)
                 console.log('res:', res)
                 if (res && res.data) {
-                    props.setTrackUpload({
-                        ...trackUpload,
+                    props.setTrackUpload((prevState: any) => ({
+                        ...prevState,
                         uploadedTrackName: res?.data?.data?.fileName
-                    })
-                    setOpenMessage(true)
-                    //@ts-ignore
-                    setResMessage("Upload file thành công!")
-                    setTimeout(() => {
-                        setOpenMessage(false)
-                    }, 3000)
-                    setTimeout(() => {
-                        props.setValue(1)
-                    }, 1500)
+                    }))
                 }
             } catch (error) {
                 //@ts-ignore
@@ -129,7 +119,9 @@ const Step1 = (props: IProps) => {
     const { acceptedFiles, getRootProps, getInputProps } = useDropzone({
         onDrop,
         accept: {
-            'audio': ['.mp3', '.m4a', '.wav']
+            'video/mp4': ['.mp4', '.MP4'],
+            'audio/mpeg': ['.mp3'],
+            'audio/wav': ['.wav'],
         }
     });
 
