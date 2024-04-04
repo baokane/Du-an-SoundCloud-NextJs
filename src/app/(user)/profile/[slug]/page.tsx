@@ -1,5 +1,10 @@
 import ProfileTracks from "@/components/header/profile.tracks";
 import { sendRequest } from "@/utils/api";
+import { Container, Grid } from "@mui/material";
+
+interface ITrackList {
+    data: ITrackTop
+}
 
 const ProfilePage = async ({
     params,
@@ -15,16 +20,24 @@ const ProfilePage = async ({
 
     })
     const data = tracks?.data?.result ?? []
-    console.log('res:', data)
+    // console.log('params:', params)
     // const search = searchParams.get('audio')
     return (
-        <div>
-            {data?.map((item) => {
-                return (
-                    <ProfileTracks data={item} />
-                )
-            })}
-        </div>
+        <Container sx={{ my: 5 }}>
+            <Grid container spacing={5}>
+                {data?.map((item: any) => {
+                    // console.log('item:', item)
+                    return (
+                        <Grid item xs={12} md={6}>
+                            <ProfileTracks
+                                // data={data}
+                                data={item}
+                            />
+                        </Grid>
+                    )
+                })}
+            </Grid>
+        </Container>
     );
 }
 
