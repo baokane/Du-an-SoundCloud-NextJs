@@ -9,13 +9,16 @@ import PauseIcon from '@mui/icons-material/Pause';
 import './wave.scss';
 import { Tooltip } from "@mui/material";
 import { useTrackContext } from "@/lib/track.wrapper";
+import { fetchDefaultImages } from "@/utils/api";
+import CommentTrack from "./comment.track";
 
 interface IProps {
     track: ITrackTop | null;
+    comment: ITrackComment[];
 }
 
 const WaveTrack = (props: IProps) => {
-    const { track } = props;
+    const { track, comment } = props;
     const searchParams = useSearchParams()
     const fileName = searchParams.get('audio');
     const containerRef = useRef<HTMLDivElement>(null);
@@ -101,29 +104,29 @@ const WaveTrack = (props: IProps) => {
         return `${minutes}:${paddedSeconds}`
     }
 
-    const arrComments = [
-        {
-            id: 1,
-            avatar: "http://localhost:8000/images/chill1.png",
-            moment: 10,
-            user: "username 1",
-            content: "just a comment1"
-        },
-        {
-            id: 2,
-            avatar: "http://localhost:8000/images/chill1.png",
-            moment: 30,
-            user: "username 2",
-            content: "just a comment3"
-        },
-        {
-            id: 3,
-            avatar: "http://localhost:8000/images/chill1.png",
-            moment: 50,
-            user: "username 3",
-            content: "just a comment3"
-        },
-    ]
+    // const arrComments = [
+    //     {
+    //         id: 1,
+    //         avatar: "http://localhost:8000/images/chill1.png",
+    //         moment: 10,
+    //         user: "username 1",
+    //         content: "just a comment1"
+    //     },
+    //     {
+    //         id: 2,
+    //         avatar: "http://localhost:8000/images/chill1.png",
+    //         moment: 30,
+    //         user: "username 2",
+    //         content: "just a comment3"
+    //     },
+    //     {
+    //         id: 3,
+    //         avatar: "http://localhost:8000/images/chill1.png",
+    //         moment: 50,
+    //         user: "username 3",
+    //         content: "just a comment3"
+    //     },
+    // ]
 
     const calLeft = (moment: number) => {
         const hardCodeDuration = 199;
@@ -132,151 +135,167 @@ const WaveTrack = (props: IProps) => {
     }
 
     useEffect(() => {
-        if (wavesurfer && currentTrack.isPlaying === true) {  //chạy
-            wavesurfer.pause();                               // dừng
+        if (wavesurfer && currentTrack.isPlaying === true) {
+            wavesurfer.pause();
         }
     }, [currentTrack])
 
+
     useEffect(() => {
-        if (track?._id && !currentTrack?._id)
+        if (track?._id && !currentTrack?._id) {
             setCurrentTrack({ ...track, isPlaying: true })
+        }
     }, [track])
 
     return (
-        <div style={{ marginTop: 20 }}>
-            <div
-                style={{
-                    display: "flex",
-                    gap: 15,
-                    padding: 20,
-                    height: 400,
-                    background: "linear-gradient(135deg, rgb(106, 112, 67) 0%, rgb(11, 15, 20) 100%)"
-                }}
-            >
-                <div className="left"
+        <>
+            <div style={{ marginTop: 20 }}>
+                <div
                     style={{
-                        width: "75%",
-                        height: "calc(100% - 10px)",
                         display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "space-between"
+                        gap: 15,
+                        padding: 20,
+                        height: 400,
+                        background: "linear-gradient(135deg, rgb(106, 112, 67) 0%, rgb(11, 15, 20) 100%)"
                     }}
                 >
-                    <div className="info" style={{ display: "flex" }}>
-                        <div>
-                            <div
-                                onClick={() => {  // chạy wavesurfer
-                                    onPlayClick();
-                                    if (track && wavesurfer) {
-                                        setCurrentTrack({ ...currentTrack, isPlaying: false })
-                                    }
+                    <div className="left"
+                        style={{
+                            width: "75%",
+                            height: "calc(100% - 10px)",
+                            display: "flex",
+                            flexDirection: "column",
+                            justifyContent: "space-between"
+                        }}
+                    >
+                        <div className="info" style={{ display: "flex" }}>
+                            <div>
+                                <div
+                                    onClick={() => {  // chạy wavesurfer
+                                        onPlayClick();
+                                        if (track && wavesurfer) {
+                                            setCurrentTrack({ ...currentTrack, isPlaying: false })
+                                        }
 
+                                    }}
+                                    style={{
+                                        borderRadius: "50%",
+                                        background: "#f50",
+                                        height: "50px",
+                                        width: "50px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        cursor: "pointer"
+                                    }}
+                                >
+                                    {isPlaying === true ?
+                                        <PauseIcon
+                                            sx={{ fontSize: 30, color: "white" }}
+                                        />
+                                        :
+                                        <PlayArrowIcon
+                                            sx={{ fontSize: 30, color: "white" }}
+                                        />
+                                    }
+                                </div>
+                            </div>
+                            <div style={{ marginLeft: 20 }}>
+                                <div style={{
+                                    padding: "0 5px",
+                                    background: "#333",
+                                    fontSize: 30,
+                                    width: "fit-content",
+                                    color: "white"
+                                }}>
+                                    {track?.title}
+                                </div>
+                                <div style={{
+                                    padding: "0 5px",
+                                    marginTop: 10,
+                                    background: "#333",
+                                    fontSize: 20,
+                                    width: "fit-content",
+                                    color: "white"
                                 }}
+                                >
+                                    {track?.description}
+                                </div>
+                            </div>
+                        </div>
+                        <div ref={containerRef} className="wave-form-container">
+                            <div className="time" >{time}</div>
+                            <div className="duration" >{duration}</div>
+                            <div ref={hoverRef} className="hover-wave"></div>
+                            <div className="overlay"
                                 style={{
-                                    borderRadius: "50%",
-                                    background: "#f50",
-                                    height: "50px",
-                                    width: "50px",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    cursor: "pointer"
+                                    position: "absolute",
+                                    height: "30px",
+                                    width: "100%",
+                                    bottom: "0",
+                                    // background: "#ccc"
+                                    backdropFilter: "brightness(0.5)"
                                 }}
+                            ></div>
+                            <div className="comments"
+                                style={{ position: "relative" }}
                             >
-                                {isPlaying === true ?
-                                    <PauseIcon
-                                        sx={{ fontSize: 30, color: "white" }}
-                                    />
-                                    :
-                                    <PlayArrowIcon
-                                        sx={{ fontSize: 30, color: "white" }}
-                                    />
+                                {
+                                    comment.map(item => {
+                                        return (
+                                            <Tooltip title={item.content} arrow key={item._id}>
+                                                <img
+                                                    onPointerMove={(e) => {
+                                                        const hover = hoverRef.current!;
+                                                        hover.style.width = calLeft(item.moment)
+                                                    }}
+                                                    key={item._id}
+                                                    style={{
+                                                        height: 20, width: 20,
+                                                        position: "absolute",
+                                                        top: 71,
+                                                        zIndex: 20,
+                                                        left: calLeft(item.moment)
+                                                    }}
+                                                    src={fetchDefaultImages(item?.user?.type)}
+                                                />
+                                            </Tooltip>
+                                        )
+                                    })
                                 }
                             </div>
                         </div>
-                        <div style={{ marginLeft: 20 }}>
+                    </div>
+                    <div className="right"
+                        style={{
+                            width: "25%",
+                            padding: 15,
+                            display: "flex",
+                            alignItems: "center"
+                        }}
+                    >
+                        {track?.imgUrl ?
+                            <img
+                                src={`${process.env.NEXT_PUBLIC_BACKEND_URL}/images/${track.imgUrl}`}
+                                style={{
+                                    // background: "#ccc",
+                                    width: 250,
+                                    height: 250
+                                }} />
+                            :
                             <div style={{
-                                padding: "0 5px",
-                                background: "#333",
-                                fontSize: 30,
-                                width: "fit-content",
-                                color: "white"
+                                background: "#ccc",
+                                width: 250,
+                                height: 250
                             }}>
-                                {track?.title}
                             </div>
-                            <div style={{
-                                padding: "0 5px",
-                                marginTop: 10,
-                                background: "#333",
-                                fontSize: 20,
-                                width: "fit-content",
-                                color: "white"
-                            }}
-                            >
-                                {track?.description}
-                            </div>
-                        </div>
-                    </div>
-                    <div ref={containerRef} className="wave-form-container">
-                        <div className="time" >{time}</div>
-                        <div className="duration" >{duration}</div>
-                        <div ref={hoverRef} className="hover-wave"></div>
-                        <div className="overlay"
-                            style={{
-                                position: "absolute",
-                                height: "30px",
-                                width: "100%",
-                                bottom: "0",
-                                // background: "#ccc"
-                                backdropFilter: "brightness(0.5)"
-                            }}
-                        ></div>
-                        <div className="comments"
-                            style={{ position: "relative" }}
-                        >
-                            {
-                                arrComments.map(item => {
-                                    return (
-                                        <Tooltip title={item.content} arrow key={item.id}>
-                                            <img
-                                                onPointerMove={(e) => {
-                                                    const hover = hoverRef.current!;
-                                                    hover.style.width = calLeft(item.moment)
-                                                }}
-                                                key={item.id}
-                                                style={{
-                                                    height: 20, width: 20,
-                                                    position: "absolute",
-                                                    top: 71,
-                                                    zIndex: 20,
-                                                    left: calLeft(item.moment)
-                                                }}
-                                                src={`http://localhost:8000/images/chill1.png`}
-                                            />
-                                        </Tooltip>
-                                    )
-                                })
-                            }
-                        </div>
+
+                        }
                     </div>
                 </div>
-                <div className="right"
-                    style={{
-                        width: "25%",
-                        padding: 15,
-                        display: "flex",
-                        alignItems: "center"
-                    }}
-                >
-                    <div style={{
-                        background: "#ccc",
-                        width: 250,
-                        height: 250
-                    }}>
-                    </div>
-                </div>
-            </div>
-        </div >
+            </div >
+            <CommentTrack track={track ?? null} comment={comment} />
+        </>
     )
 }
 
