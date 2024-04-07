@@ -1,19 +1,75 @@
 'use client'
-import { fetchDefaultImages } from '@/utils/api';
+import { fetchDefaultImages, sendRequest } from '@/utils/api';
 import TextField from '@mui/material/TextField';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { useState } from 'react';
+import { url } from 'inspector';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import WaveSurfer from 'wavesurfer.js';
 dayjs.extend(relativeTime)
 
 interface IProps {
     track: ITrackTop | null;
     comment: ITrackComment[];
+    wavesurfer: WaveSurfer | null;
+}
+
+interface ICreateComment {
+    "content": string;
+    "moment": string;
+    "user": string;
+    "track": string;
+    "isDeleted": string;
+    "_id": string;
+    "createdAt": string;
+    "updatedAt": string;
 }
 
 const CommentTrack = (props: IProps) => {
-    const { track, comment } = props
+    const { track, comment, wavesurfer } = props
     const [yourComment, setYourComment] = useState('')
+
+    const { data: session } = useSession()
+    const router = useRouter();
+
+    // console.log('Check:', Math.round(wavesurfer?.getCurrentTime() ?? 0))
+
+    const handleSubmit = async () => {
+        const res = await sendRequest<IBackendRes<ICreateComment>>({
+            url: 'http://localhost:8000/api/v1/comments',
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${session?.access_token}`,
+            },
+            body: {
+                content: yourComment,
+                moment: Math.round(wavesurfer?.getCurrentTime() ?? 0),
+                track: track?._id
+            }
+        })
+        console.log('res:', res)
+        if (res && res.data) {
+            router.refresh();
+            setYourComment('')
+        }
+    }
+
+    const formatTime = (seconds: number) => {
+        const minutes = Math.floor(seconds / 60)
+        const secondsRemainder = Math.round(seconds) % 60
+        const paddedSeconds = `0${secondsRemainder}`.slice(-2)
+        return `${minutes}:${paddedSeconds}`
+    }
+
+    const handleJumpTrack = (moment: number) => {
+        if (wavesurfer) {
+            const duration = wavesurfer.getDuration();
+            wavesurfer.seekTo(moment / duration);
+            wavesurfer.play();
+        }
+    }
 
     return (
         <>
@@ -22,8 +78,8 @@ const CommentTrack = (props: IProps) => {
                 onChange={(e) => setYourComment(e.target.value)}
                 onKeyDown={(e) => {
                     if (e.key === 'Enter') {
-                        alert('me')
-                        // handleSubmit()
+                        // alert('me')
+                        handleSubmit()
                     }
                 }}
                 sx={{
@@ -79,12 +135,18 @@ const CommentTrack = (props: IProps) => {
                                             style={{
                                                 width: 30,
                                                 height: 30,
-                                                background: '#ccc'
                                             }}
                                             src={fetchDefaultImages(item?.user?.email)}
                                         />
                                         <div>
-                                            <div style={{ fontSize: 16, color: '#958d8d' }}>{item?.user?.email}</div>
+                                            <div style={{ fontSize: 16, color: '#958d8d' }}>{item?.user?.email} at &nbsp;
+                                                <span onClick={() => handleJumpTrack(item.moment)}
+                                                >
+                                                    {formatTime(item.moment)}
+                                                </span>
+                                            </div>
+
+                                            {/* comment */}
                                             <div style={{ fontSize: 18, color: 'black' }}>{item?.content}</div>
                                         </div>
                                     </div>

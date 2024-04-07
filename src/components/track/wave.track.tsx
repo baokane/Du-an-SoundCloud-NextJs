@@ -1,16 +1,17 @@
 'use client'
 
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useWavesurfer } from "@/utils/customHook";
-import { WaveSurferOptions } from 'wavesurfer.js';
+import WaveSurfer, { WaveSurferOptions } from 'wavesurfer.js';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import './wave.scss';
 import { Tooltip } from "@mui/material";
 import { useTrackContext } from "@/lib/track.wrapper";
-import { fetchDefaultImages } from "@/utils/api";
+import { fetchDefaultImages, sendRequest } from "@/utils/api";
 import CommentTrack from "./comment.track";
+import LikeTrack from "./like.track";
 
 interface IProps {
     track: ITrackTop | null;
@@ -26,6 +27,10 @@ const WaveTrack = (props: IProps) => {
     const [time, setTime] = useState<string>("0:00");
     const [duration, setDuration] = useState<string>("0:00");
     const { currentTrack, setCurrentTrack } = useTrackContext() as ITrackContext;
+
+    const firstViewRef = useRef(true)
+
+    const router = useRouter();
 
     const optionsMemo = useMemo((): Omit<WaveSurferOptions, 'container'> => {
         let gradient, progressGradient;
@@ -129,7 +134,7 @@ const WaveTrack = (props: IProps) => {
     // ]
 
     const calLeft = (moment: number) => {
-        const hardCodeDuration = 199;
+        const hardCodeDuration = wavesurfer?.getDuration() ?? 0;
         const percent = (moment / hardCodeDuration) * 100;
         return `${percent}%`
     }
@@ -146,6 +151,20 @@ const WaveTrack = (props: IProps) => {
             setCurrentTrack({ ...track, isPlaying: true })
         }
     }, [track])
+
+    const handleIncreaseView = async () => {
+        if (firstViewRef.current === true) {
+            const res2 = await sendRequest<IBackendRes<IModelPaginate<ITrackLike>>>({
+                url: `http://localhost:8000/api/v1/tracks/increase-view`,
+                method: "POST",
+                body: {
+                    trackId: track?._id
+                }
+            })
+            router.refresh()
+            firstViewRef.current = false
+        }
+    }
 
     return (
         <>
@@ -172,6 +191,7 @@ const WaveTrack = (props: IProps) => {
                             <div>
                                 <div
                                     onClick={() => {  // chạy wavesurfer
+                                        handleIncreaseView()
                                         onPlayClick();
                                         if (track && wavesurfer) {
                                             setCurrentTrack({ ...currentTrack, isPlaying: false })
@@ -294,7 +314,8 @@ const WaveTrack = (props: IProps) => {
                     </div>
                 </div>
             </div >
-            <CommentTrack track={track ?? null} comment={comment} />
+            <LikeTrack track={track ?? null} />
+            <CommentTrack track={track ?? null} comment={comment} wavesurfer={wavesurfer} />
         </>
     )
 }

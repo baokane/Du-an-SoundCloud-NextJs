@@ -38,12 +38,14 @@ const AppFooter = () => {
                             background: "#f2f2f2"
                         }}
                     >
-                        <Container sx={{
-                            display: "flex", gap: 10,
-                            ".rhap_main": {
-                                gap: "30px"
-                            }
-                        }}>
+                        <Container
+                            disableGutters
+                            sx={{
+                                display: "flex", gap: 10,
+                                ".rhap_main": {
+                                    gap: "30px"
+                                }
+                            }}>
                             <AudioPlayer
                                 ref={playerRef}
                                 layout='horizontal-reverse'
@@ -67,12 +69,26 @@ const AppFooter = () => {
                                 justifyContent: "center",
                                 minWidth: 100
                             }}>
-                                <div style={{ color: "#ccc" }}>{currentTrack.description}</div>
-                                <div style={{ color: "black" }}>{currentTrack.title}</div>
+                                <div style={{
+                                    color: "#ccc",
+                                    width: '100px',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                }}
+                                >{currentTrack.description}</div>
+                                <div style={{
+                                    color: "black",
+                                    width: '100px',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                }}
+                                >{currentTrack.title}</div>
                             </div>
                         </Container>
                     </AppBar>
-                </div>
+                </div >
             }
         </>
     )
