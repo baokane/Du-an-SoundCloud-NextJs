@@ -17,6 +17,7 @@ import { useRouter } from 'next/navigation';
 import { useTrackContext } from '@/lib/track.wrapper';
 import { Remove } from '@mui/icons-material';
 import Link from 'next/link';
+import { convertSlugUrl } from '@/utils/api';
 
 interface ITrackList {
     data: ITrackTop
@@ -38,7 +39,7 @@ const ProfileTracks = (props: ITrackList) => {
         <Card sx={{ display: 'flex', justifyContent: "space-between" }}>
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                 <CardContent sx={{ flex: '1 0 auto' }}>
-                    <Link style={{ textDecoration: 'none', color: 'unset' }} href={`/track/${data._id}?audio=${data.trackUrl}&id=${data._id}`}>
+                    <Link style={{ textDecoration: 'none', color: 'unset' }} href={`/track/${convertSlugUrl(data.title)}-${data._id}.html?audio=${data.trackUrl}`}>
                         <Typography component="div" variant="h5">
                             {data?.title}
                         </Typography>

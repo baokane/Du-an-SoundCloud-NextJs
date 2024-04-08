@@ -15,6 +15,7 @@ import { useSession } from 'next-auth/react';
 import axios from 'axios';
 import { sendRequest } from '@/utils/api';
 import { useToast } from '@/utils/toast';
+import Image from 'next/image';
 
 // Progress bar
 function LinearProgressWithLabel(props: LinearProgressProps & { value: number }) {
@@ -258,10 +259,16 @@ const Step2 = (props: IProps) => {
                         style={{ height: 250, width: 250, background: '#ccc' }}
                     >
                         {info.imgUrl &&
-                            <img
+                            // <img
+                            //     height={250}
+                            //     width={250}
+                            //     src={`${process.env.NEXT_PUBLIC_BACKEND_URL}/images/${info.imgUrl}`} alt='ảnh'
+                            // />
+                            <Image
+                                src={`${process.env.NEXT_PUBLIC_BACKEND_URL}/images/${info.imgUrl}`}
+                                alt='step2 track url'
                                 height={250}
                                 width={250}
-                                src={`${process.env.NEXT_PUBLIC_BACKEND_URL}/images/${info.imgUrl}`} alt='ảnh'
                             />
                         }
                     </div>

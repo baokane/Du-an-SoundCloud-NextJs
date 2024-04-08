@@ -8,6 +8,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import WaveSurfer from 'wavesurfer.js';
+import Image from 'next/image';
 dayjs.extend(relativeTime)
 
 interface IProps {
@@ -33,8 +34,6 @@ const CommentTrack = (props: IProps) => {
 
     const { data: session } = useSession()
     const router = useRouter();
-
-    // console.log('Check:', Math.round(wavesurfer?.getCurrentTime() ?? 0))
 
     const handleSubmit = async () => {
         const res = await sendRequest<IBackendRes<ICreateComment>>({
@@ -93,7 +92,7 @@ const CommentTrack = (props: IProps) => {
 
                 <div className='left' style={{ display: 'flex', gap: 100 }}>
                     <div className='avatar-info' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <img style={{
+                        {/* <img style={{
                             width: 100,
                             height: 100,
                             marginBottom: 15
@@ -102,6 +101,12 @@ const CommentTrack = (props: IProps) => {
                                 //@ts-ignore
                                 fetchDefaultImages(track?.uploader?.type)
                             }
+                        /> */}
+                        <Image
+                            src={fetchDefaultImages(track?.uploader?.type!)}
+                            alt='avatar comment'
+                            height={150}
+                            width={150}
                         />
                         <div>
                             {track?.uploader?.email}
@@ -131,12 +136,18 @@ const CommentTrack = (props: IProps) => {
                                             alignItems: 'center',
                                         }}
                                     >
-                                        <img
+                                        {/* <img
                                             style={{
                                                 width: 30,
                                                 height: 30,
                                             }}
+                                            src={}
+                                        /> */}
+                                        <Image
                                             src={fetchDefaultImages(item?.user?.email)}
+                                            alt='comment'
+                                            width={40}
+                                            height={40}
                                         />
                                         <div>
                                             <div style={{ fontSize: 16, color: '#958d8d' }}>{item?.user?.email} at &nbsp;
