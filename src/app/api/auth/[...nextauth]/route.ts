@@ -6,7 +6,7 @@ import { JWT } from "next-auth/jwt"
 import CredentialsProvider from "next-auth/providers/credentials";
 
 export const authOptions: AuthOptions = {
-    secret: process.env.NO_SECRET,
+    secret: process.env.NEXTAUTH_SECRET,
     // Configure one or more authentication providers
     providers: [
         CredentialsProvider({
@@ -23,7 +23,7 @@ export const authOptions: AuthOptions = {
             async authorize(credentials, req) {
                 // Add logic here to look up the user from the credentials supplied
                 const res = await sendRequest<IBackendRes<JWT>>({
-                    url: 'http://localhost:8000/api/v1/auth/login',
+                    url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/login`,
                     method: 'POST',
                     body: {
                         username: credentials?.username,
@@ -54,7 +54,7 @@ export const authOptions: AuthOptions = {
             if (trigger === 'signIn' && account?.provider !== 'credentials') {
                 //đăng nhập social network
                 const res = await sendRequest<IBackendRes<JWT>>({
-                    url: 'http://localhost:8000/api/v1/auth/social-media',
+                    url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/social-media`,
                     method: 'POST',
                     body: {
                         type: account?.provider.toLocaleUpperCase(),

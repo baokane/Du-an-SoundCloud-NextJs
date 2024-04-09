@@ -1,4 +1,4 @@
-const PlaylistPage = () => {
+const PlaylistPage = async () => {
     return (
         <div>Page Playlist</div>
     );

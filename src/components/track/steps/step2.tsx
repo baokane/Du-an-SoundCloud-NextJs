@@ -71,7 +71,7 @@ function InputFileUpload(props: any) {
 
         try {
             const res = await axios.post(
-                'http://localhost:8000/api/v1/files/upload',
+                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/files/upload`,
                 formData,
                 {
                     headers: {
@@ -214,7 +214,7 @@ const Step2 = (props: IProps) => {
 
         console.log('info:', info)
         const res = await sendRequest<IBackendRes<ITrackTop[]>>({
-            url: 'http://localhost:8000/api/v1/tracks',
+            url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/tracks`,
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${session?.access_token}`,
