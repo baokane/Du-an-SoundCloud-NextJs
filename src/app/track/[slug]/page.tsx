@@ -43,7 +43,13 @@ export async function generateMetadata(
     }
 }
 
-// export default function Page({ params, searchParams }: Props) {}
+export function generateStaticParams() {
+    return [
+        { slug: 'Nu-Hon-Bisou-65f9170fc93bbfbbc8d9ec2a.html' },
+        { slug: 'Rolling-Down-65f9170fc93bbfbbc8d9ec2b.html' },
+        { slug: 'Khi-Con-Mo-Dan-Phai-65f9170fc93bbfbbc8d9ec2c.html' }
+    ]
+}
 
 const DetailTrackPage = async (props: any) => {
     const { params } = props;
@@ -55,7 +61,7 @@ const DetailTrackPage = async (props: any) => {
     const res = await sendRequest<IBackendRes<ITrackTop>>({
         url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/tracks/${id}`,
         method: "GET",
-        nextOption: { cache: "no-store" }
+        // nextOption: { cache: "no-store" }
     })
 
     const comment = await sendRequest<IBackendRes<IModelPaginate<ITrackComment>>>({

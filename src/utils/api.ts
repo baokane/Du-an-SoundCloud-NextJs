@@ -90,7 +90,7 @@ export const fetchDefaultImages = (type: string) => {
 export const convertSlugUrl = (str: string) => {
     if (!str) return
     str = slugify(str, {
-        lower: false,
+        lower: true,
         locale: 'vie'
     })
     return str
