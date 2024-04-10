@@ -1,3 +1,4 @@
+
 import Chip from '@mui/material/Chip';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -5,7 +6,6 @@ import { useEffect, useState } from 'react';
 import { sendRequest } from '@/utils/api';
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-
 
 interface IProps {
     track: ITrackTop | null;
@@ -31,8 +31,9 @@ const LikeTrack = (props: IProps) => {
                     Authorization: `Bearer ${session?.access_token}`,
                 },
             })
-            if (res2?.data?.result)
+            if (res2?.data?.result) {
                 setTrackLikes(res2?.data?.result)
+            }
         }
     }
     useEffect(() => {
@@ -51,7 +52,14 @@ const LikeTrack = (props: IProps) => {
                 Authorization: `Bearer ${session?.access_token}`,
             },
         })
-
+        await sendRequest<IBackendRes<any>>({
+            url: '/api/revalidate',
+            method: 'POST',
+            queryParams: {
+                tag: 'track-by-id',
+                secret: 'justArandomString'
+            }
+        })
         fetchData();
         router.refresh();
     }

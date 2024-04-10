@@ -50,6 +50,14 @@ const CommentTrack = (props: IProps) => {
         })
         console.log('res:', res)
         if (res && res.data) {
+            await sendRequest<IBackendRes<any>>({
+                url: '/api/revalidate',
+                method: 'POST',
+                queryParams: {
+                    tag: 'track-by-id',
+                    secret: 'justArandomString'
+                }
+            })
             router.refresh();
             setYourComment('')
         }

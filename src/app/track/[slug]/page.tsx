@@ -3,10 +3,8 @@ import { useSearchParams } from 'next/navigation'
 import Container from '@mui/material/Container';
 import { sendRequest } from '@/utils/api';
 import slugify from 'slugify';
-import { revalidateTag } from 'next/cache'
-
+import { revalidatePath, revalidateTag } from 'next/cache'
 import type { Metadata, ResolvingMetadata } from 'next'
-import next from 'next';
 
 type Props = {
     params: { slug: string }
@@ -47,9 +45,9 @@ export async function generateMetadata(
 
 export function generateStaticParams() {
     return [
-        { slug: 'Nu-Hon-Bisou-65f9170fc93bbfbbc8d9ec2a.html' },
-        { slug: 'Rolling-Down-65f9170fc93bbfbbc8d9ec2b.html' },
-        { slug: 'Khi-Con-Mo-Dan-Phai-65f9170fc93bbfbbc8d9ec2c.html' }
+        { slug: 'nu-hon-bisou-65f9170fc93bbfbbc8d9ec2a.html' },
+        { slug: 'rolling-down-65f9170fc93bbfbbc8d9ec2b.html' },
+        { slug: 'khi-con-mo-dan-phai-65f9170fc93bbfbbc8d9ec2c.html' }
     ]
 }
 
@@ -68,7 +66,7 @@ const DetailTrackPage = async (props: any) => {
             next: { tags: ['track-by-id'] }
         }
     })
-    revalidateTag('track-by-id')
+    // revalidateTag('track-by-id')
     const comment = await sendRequest<IBackendRes<IModelPaginate<ITrackComment>>>({
         url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/tracks/comments`,
         method: "POST",
@@ -79,7 +77,6 @@ const DetailTrackPage = async (props: any) => {
             sort: '-createdAt'
         }
     })
-
     return (
         <Container>
             <div>

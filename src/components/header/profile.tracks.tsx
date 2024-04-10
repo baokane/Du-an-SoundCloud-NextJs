@@ -17,7 +17,7 @@ import { useRouter } from 'next/navigation';
 import { useTrackContext } from '@/lib/track.wrapper';
 import { Remove } from '@mui/icons-material';
 import Link from 'next/link';
-import { convertSlugUrl } from '@/utils/api';
+import { convertSlugUrl, sendRequest } from '@/utils/api';
 
 interface ITrackList {
     data: ITrackTop
@@ -32,6 +32,14 @@ const ProfileTracks = (props: ITrackList) => {
     useEffect(() => {
         if (data) {
             router.refresh();
+            sendRequest<IBackendRes<any>>({
+                url: '/api/revalidate',
+                method: 'POST',
+                queryParams: {
+                    tag: 'profile-track',
+                    secret: 'justArandomString'
+                }
+            })
         }
     }, [])
 

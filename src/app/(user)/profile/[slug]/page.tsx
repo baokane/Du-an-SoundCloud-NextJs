@@ -1,7 +1,6 @@
 import ProfileTracks from "@/components/header/profile.tracks";
 import { sendRequest } from "@/utils/api";
 import { Container, Grid } from "@mui/material";
-import { revalidateTag } from "next/cache";
 
 interface ITrackList {
     data: ITrackTop
@@ -20,10 +19,11 @@ const ProfilePage = async ({
         body: { id: params.slug },
         nextOption: {
             next:
-                { tags: ['collection'] }
+                { tags: ['profile-track'] }
         }
     })
-    revalidateTag('collection')
+
+    // revalidateTag('collection')
     const data = tracks?.data?.result ?? []
     // console.log('params:', params)
     // const search = searchParams.get('audio')
