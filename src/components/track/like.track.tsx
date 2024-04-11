@@ -1,4 +1,4 @@
-
+'use client'
 import Chip from '@mui/material/Chip';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';

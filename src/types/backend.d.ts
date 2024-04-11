@@ -89,4 +89,26 @@ declare global {
         "createdAt": string;
         "updatedAt": string;
     }
+
+    interface IPlaylist {
+        "_id": string;
+        "title": string;
+        "isPublic": true;
+        "user": string;
+        "tracks": [];
+        "isDeleted": false;
+        "createdAt": string;
+        "updatedAt": string;
+    }
+
+    interface ILikeByUser {
+        _id: string;
+        title: string;
+        description: string;
+        category: string;
+        imgUrl: string;
+        trackUrl: string;
+        countLike: number;
+        countPlay: number;
+    }
 }

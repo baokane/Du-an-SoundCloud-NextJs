@@ -30,18 +30,20 @@ const ProfileTracks = (props: ITrackList) => {
     const router = useRouter();
 
     useEffect(() => {
-        if (data) {
-            router.refresh();
-            sendRequest<IBackendRes<any>>({
-                url: '/api/revalidate',
-                method: 'POST',
-                queryParams: {
-                    tag: 'profile-track',
-                    secret: 'justArandomString'
-                }
-            })
-        }
+        fetchData()
     }, [])
+
+    const fetchData = async () => {
+        router.refresh();
+        await sendRequest<IBackendRes<any>>({
+            url: '/api/revalidate',
+            method: 'POST',
+            queryParams: {
+                tag: 'profile-track',
+                secret: 'justArandomString'
+            }
+        })
+    }
 
     return (
         <Card sx={{ display: 'flex', justifyContent: "space-between" }}>
